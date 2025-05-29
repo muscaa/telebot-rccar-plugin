@@ -1,4 +1,4 @@
-#include "ttp/plugin.h"
+#include "rccar/plugin.h"
 
 #include <telebot/telebot.h>
 #include <telebot/events.h>
@@ -6,7 +6,7 @@
 #include <telebot/cli/cli.h>
 #include <imgui.h>
 
-namespace ttp {
+namespace rccar {
 
 namespace log = telebot::utils::logging;
 

@@ -5,7 +5,7 @@
 #include <telebot/api.h>
 #include <telebot/plugins.h>
 
-namespace ttp {
+namespace rccar {
 
 EXPORT int main_cli(const telebot::plugins::Plugin& plugin);
 
