@@ -1,4 +1,4 @@
-#include "rccar/plugin.h"
+#include "rccar/rccar.h"
 
 #include <telebot/telebot.h>
 #include <telebot/events.h>
@@ -9,11 +9,6 @@
 namespace rccar {
 
 namespace log = telebot::utils::logging;
-
-int main_cli(const telebot::plugins::Plugin& plugin) {
-    log::info("Plugin {} main CLI called with {} args", plugin.getId(), telebot::cli::args.size());
-    return 0;
-}
 
 static bool show_demo_window = true;
 static bool show_another_window = false;
@@ -66,4 +61,4 @@ void main(const telebot::plugins::Plugin& plugin) {
     telebot::events::post_imgui_build.connect(&post_imgui_build);
 }
 
-} // namespace ttp
+} // namespace rccar
