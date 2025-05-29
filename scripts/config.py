@@ -17,6 +17,6 @@ PLUGIN_JSON: dict = {
     "version": "1.0.0",
     "description": "A telebot plugin for controlling an RC car.",
     "plugin_lib": NAME,
-    "plugin_main": "ttp::main",
-    "plugin_main_cli": "ttp::main_cli",
+    "plugin_main": "rccar::main",
+    "plugin_main_cli": "rccar::main_cli",
 }
