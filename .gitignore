@@ -1,0 +1,30 @@
+# VS Code
+.vscode/
+
+# CMake
+/build/
+/CMakeUserPresets.json
+
+# VCPkg
+/vcpkg_installed/
+
+# Python
+__pycache__/
+
+# OSX
+.DS_Store
+
+# Dear ImGui
+imgui.ini
+imgui*.ini
+
+# SDK
+/sdks/*
+# Uncomment the line below to include the SDK zips
+#!/sdks/*.zip
+
+# Comment out the lines below to include cmake & vcpkg common files
+/vcpkg_triplets/
+/CMakePresets.json
+/vcpkg-configuration.json
+/vcpkg.json

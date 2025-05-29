@@ -1,0 +1,83 @@
+name: Cross Platform Release Build
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+            ext: ""
+          - os: windows-latest
+            platform: windows
+            arch: x64
+            ext: ".exe"
+          - os: macos-latest
+            platform: macos
+            arch: arm64
+            ext: ""
+
+    runs-on: ${{ matrix.os }}
+    name: Build on ${{ matrix.platform }}-${{ matrix.arch }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Cache VCPKG
+      uses: actions/cache@v4
+      with:
+        path: |
+          vcpkg/buildtrees
+          vcpkg/installed
+          vcpkg/packages
+          vcpkg_installed
+          build
+        key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
+        restore-keys: |
+          vcpkg-${{ runner.os }}-
+
+    - name: Setup Linux
+      if: matrix.platform == 'linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y autoconf automake autoconf-archive m4 libtool libltdl-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libx11-dev libxft-dev libxext-dev
+
+    - name: Setup MacOS
+      if: matrix.platform == 'macos'
+      run: |
+        brew update
+        brew install autoconf automake autoconf-archive m4 intltool libtool pkgconf gtk-doc readline gettext
+    
+    - name: Setup CMake & Ninja
+      uses: lukka/get-cmake@latest
+      with:
+        useLocalCache: false
+        useCloudCache: false
+        cmakeVersion: "~3.25.0"
+        ninjaVersion: "^1.11.1"
+
+    - name: Setup VCPKG
+      uses: lukka/run-vcpkg@v11
+
+    - name: Build
+      run: python3 scripts build
+
+    - name: Package
+      run: python3 scripts package
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: github.ref_type == 'tag'
+      with:
+        files: |
+          build/telebot-${{ matrix.platform }}-${{ matrix.arch }}.zip
