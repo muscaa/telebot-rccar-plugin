@@ -22,6 +22,12 @@ struct ClientListener : public stun::ClientListener {
             log::info("{}", item);
         }
     }
+
+    void onLinkRequest(stun::Client* client, const std::string& from) {}
+
+    void onLinkAccepted(stun::Client* client, const std::string& name, const std::string& ip, uint16_t port) {}
+
+    void onLinkDeclined(stun::Client* client, const std::string& name, const std::string& message) {}
 };
 
 static void stun_client(const std::string& ip, int port, const std::string& name) {

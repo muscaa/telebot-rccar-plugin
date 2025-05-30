@@ -20,7 +20,22 @@ struct ClientListener : public stun::ClientListener {
     void onList(stun::Client* client, const std::vector<std::string>& list) {
         rccar::list = list;
     }
+
+    void onLinkRequest(stun::Client* client, const std::string& from) {
+        log::info("Accepted link request from {}", from);
+        sendC2SLinkResponse(client, from, true);
+    }
+
+    void onLinkAccepted(stun::Client* client, const std::string& name, const std::string& ip, uint16_t port) {
+        log::info("Link accepted: {} @ {}:{}", name, ip, port);
+    }
+
+    void onLinkDeclined(stun::Client* client, const std::string& name, const std::string& message) {
+        log::info("Link declined: {} - {}", name, message);
+    }
 };
+
+static std::shared_ptr<ClientListener> listener;
 
 static void imgui_plugin(const telebot::plugins::Plugin& plugin) {
     if (plugin.getId() != self->getId()) {
@@ -55,7 +70,8 @@ static void post_imgui_build() {
 
                 log::info("Connecting to {}:{} as {}...", ip, port, name);
 
-                client = std::make_unique<stun::Client>(std::make_shared<ClientListener>(), name);
+                listener = std::make_shared<ClientListener>();
+                client = std::make_unique<stun::Client>(listener, name);
                 client->connect(ip, port);
             }
         }
@@ -67,8 +83,15 @@ static void post_imgui_build() {
 
             ImGui::SeparatorText("List");
 
-            for (const auto& item : list) {
-                ImGui::Text("%s", item.c_str());
+            for (const auto& name : list) {
+                ImGui::PushID(name.c_str());
+                ImGui::Text("%s", name.c_str());
+                ImGui::SameLine();
+
+                if (ImGui::Button("Link")) {
+                    listener->sendC2SLinkRequest(client.get(), name);
+                }
+                ImGui::PopID();
             }
         }
     }
