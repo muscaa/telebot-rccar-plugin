@@ -74,8 +74,6 @@ jobs:
 
     - name: Setup VCPKG
       uses: lukka/run-vcpkg@v11
-      with:
-        vcpkgGitCommitId: acd5bba5aac8b6573b5f6f463dc0341ac0ee6fa4
 
     - name: Build
       run: python3 scripts build
@@ -99,6 +97,7 @@ jobs:
   combine:
     needs: build
     runs-on: ubuntu-latest
+    name: Combine Artifacts
 
     steps:
       - name: Checkout
