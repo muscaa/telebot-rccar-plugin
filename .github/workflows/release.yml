@@ -60,6 +60,9 @@ jobs:
       run: |
         brew update
         brew install autoconf automake autoconf-archive m4 intltool libtool pkgconf gtk-doc readline gettext
+
+    - name: Setup SDKs
+      run: python3 scripts setup
     
     - name: Setup CMake & Ninja
       uses: lukka/get-cmake@latest
@@ -73,7 +76,7 @@ jobs:
       uses: lukka/run-vcpkg@v11
 
     - name: Build
-      run: python3 scripts setup build
+      run: python3 scripts build
 
     - name: Package
       run: python3 scripts package
