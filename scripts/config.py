@@ -4,7 +4,11 @@ from utils import platform as p
 NAME: str = "rccar-plugin"
 EXECUTABLE: Executable = Executable("telebot_sdk/telebot")
 
-PACKAGE_LIBRARIES: list[Lib] = [
+PACKAGE_DIRS: list[str] = [
+    "plugin",
+]
+PACKAGE_LIBRARIES_IGNORE: list[Lib] = [
+    Lib("SDL3"),
 ]
 PACKAGE_OTHER: list[File] = [
     File("LICENSE"),

@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+env:
+  PLUGIN_NAME: rccar-plugin
+
 jobs:
   build:
     strategy:
@@ -16,15 +19,12 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             arch: x64
-            ext: ""
           - os: windows-latest
             platform: windows
             arch: x64
-            ext: ".exe"
           - os: macos-latest
             platform: macos
             arch: arm64
-            ext: ""
 
     runs-on: ${{ matrix.os }}
     name: Build on ${{ matrix.platform }}-${{ matrix.arch }}
@@ -40,8 +40,7 @@ jobs:
           vcpkg/buildtrees
           vcpkg/installed
           vcpkg/packages
-          vcpkg_installed
-          build
+          build/${{ matrix.arch }}-${{ matrix.platform }}-release/vcpkg_installed
         key: vcpkg-${{ runner.os }}-${{ hashFiles('**/vcpkg.json') }}
         restore-keys: |
           vcpkg-${{ runner.os }}-
@@ -51,6 +50,10 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y autoconf automake autoconf-archive m4 libtool libltdl-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev libegl1-mesa-dev libx11-dev libxft-dev libxext-dev
+
+    - name: Setup Windows
+      if: matrix.platform == 'windows'
+      uses: egor-tensin/vs-shell@v2
 
     - name: Setup MacOS
       if: matrix.platform == 'macos'
@@ -70,7 +73,7 @@ jobs:
       uses: lukka/run-vcpkg@v11
 
     - name: Build
-      run: python3 scripts build
+      run: python3 scripts setup build
 
     - name: Package
       run: python3 scripts package
@@ -80,4 +83,37 @@ jobs:
       if: github.ref_type == 'tag'
       with:
         files: |
-          build/telebot-${{ matrix.platform }}-${{ matrix.arch }}.zip
+          build/${{ env.PLUGIN_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.PLUGIN_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}
+        path: build/${{ env.PLUGIN_NAME }}-${{ matrix.platform }}-${{ matrix.arch }}.zip
+
+  combine:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: build
+
+      - name: Test
+        shell: bash
+        run: ls build
+
+      - name: Combine
+        run: python3 scripts combine
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: |
+            build/${{ env.PLUGIN_NAME }}.zip
