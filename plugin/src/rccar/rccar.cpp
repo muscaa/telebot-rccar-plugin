@@ -26,7 +26,7 @@ struct ClientListener : public stun::ClientListener {
         sendC2SLinkResponse(client, from, true);
     }
 
-    void onLinkAccepted(stun::Client* client, const std::string& name, const std::string& ip, uint16_t port) {
+    void onLinkAccepted(stun::Client* client, const std::string& name, const std::string& ip, int port) {
         log::info("Link accepted: {} @ {}:{}", name, ip, port);
     }
 
