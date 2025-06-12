@@ -5,6 +5,9 @@
 #include <telebot/events.h>
 #include <telebot/utils/logging.h>
 #include <telebot/utils/stun.h>
+#include <telebot/server/video.h>
+#include <telebot/utils/texture.h>
+#include <telebot/telebot.h>
 
 namespace rccar {
 
@@ -15,6 +18,7 @@ static telebot::plugins::Plugin* self;
 static bool main_window_open = false;
 static std::unique_ptr<stun::Client> client;
 static std::vector<std::string> list;
+static SDL_Texture* texture_video_stream = nullptr;
 
 struct ClientListener : public stun::ClientListener {
     void onList(stun::Client* client, const std::vector<std::string>& list) {
@@ -26,8 +30,11 @@ struct ClientListener : public stun::ClientListener {
         sendC2SLinkResponse(client, from, true);
     }
 
-    void onLinkAccepted(stun::Client* client, const std::string& name, const std::string& ip, int port) {
-        log::info("Link accepted: {} @ {}:{}", name, ip, port);
+    void onLinkAccepted(stun::Client* client, const std::string& name, const std::string& myip, int myport, const std::string& ip, int port) {
+        log::info("Link accepted: {} @ {}:{} (on {}:{})", name, ip, port, myip, myport);
+
+        texture_video_stream = telebot::utils::texture::create_texture_streaming(telebot::renderer, 1280, 720);
+        telebot::server::video::start(myport, 32, 128000);
     }
 
     void onLinkDeclined(stun::Client* client, const std::string& name, const std::string& message) {
@@ -99,11 +106,25 @@ static void post_imgui_build() {
     ImGui::End();
 }
 
+static void render() {
+    if (texture_video_stream != nullptr) {
+        telebot::server::video::update(texture_video_stream);
+        SDL_FRect destRect = {0, 0, (float) telebot::screen_width, (float) telebot::screen_height};
+        SDL_RenderTexture(telebot::renderer, texture_video_stream, nullptr, &destRect);
+    }
+}
+
+static void dispose() {
+    telebot::server::video::stop();
+}
+
 void main(const telebot::plugins::Plugin& plugin) {
     self = telebot::plugins::loaded_plugins[plugin.getId()];
 
     telebot::events::imgui_plugin.connect(&imgui_plugin);
     telebot::events::post_imgui_build.connect(&post_imgui_build);
+    telebot::events::pre_render.connect(&render);
+    telebot::events::dispose.connect(&dispose);
 
     log::info("Loaded {}!", plugin.getName());
 }
